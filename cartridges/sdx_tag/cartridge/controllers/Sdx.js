@@ -59,4 +59,22 @@ function permalink() {
     }
 }
 
+function getCartItems() {
+    try {
+        var cart = app.getModel('Cart').goc();
+        if(cart) {
+            response.setContentType('application/json');
+
+            let json = JSON.stringify(cart.object.allProductLineItems);
+            response.writer.print(json);
+        }
+    } catch (error) {
+        app.getView({
+            message: Resource.msg(error, 'sdx_error', null)
+        }).render('sdx/error');
+        return;
+    }
+}
+
 exports.Permalink = guard.ensure(['get', 'https'], permalink);
+exports.CartItems = guard.ensure(['get', 'https'], getCartItems);
