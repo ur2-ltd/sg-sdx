@@ -1,15 +1,23 @@
 'use strict';
 
 /* API Includes */
+var Transaction = require('dw/system/Transaction');
+var BasketMgr = require('dw/order/BasketMgr');
 var PromotionMgr = require('dw/campaign/PromotionMgr');
 
-function clearCart(cartObj) {
-    for (var i = cartObj.allProductLineItems.length - 1; i >= 0; i--) {
-        cartObj.removeProductLineItem(cartObj.allProductLineItems[i]);
+function clearCart() {
+    var currentBasket = BasketMgr.getCurrentBasket();
+    if (currentBasket) {
+        Transaction.wrap(function () {
+            var productLineItems = currentBasket.getAllProductLineItems();
+            for (var i = 0; i < productLineItems.length; i++) {
+                var item = productLineItems[i];
+                currentBasket.removeProductLineItem(item);
+            }
+        });
+        currentBasket.updateTotals();
+        PromotionMgr.applyDiscounts(currentBasket);
     }
-
-    cartObj.updateTotals();
-    PromotionMgr.applyDiscounts(cartObj);
 }
 
 function updateOptions(params, product) {

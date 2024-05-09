@@ -2,16 +2,12 @@
 
 /* Script Modules */
 var app = require('*/cartridge/scripts/app');
-var recreateHelpers = require('*/cartridge/scripts/sdx/recreateCartHelpers');
+var sdxUtils = require('*/cartridge/scripts/sdx/utils');
 
 function addProductToCart(decodedItems, cartObj) {
     try {
         var productList = decodedItems.length ? decodedItems : null;
         var cart = cartObj;
-
-        if (cart.object.allProductLineItems.length) {
-            recreateHelpers.clearCart(cart.object);
-        }
 
         var params = request.httpParameterMap;
         var format = params.hasOwnProperty('format') && params.format.stringValue ? params.format.stringValue.toLowerCase() : '';
@@ -23,7 +19,7 @@ function addProductToCart(decodedItems, cartObj) {
 
         for (var i = 0; i < productList.length; i++) {
             productToAdd = Product.get(productList[i].productID);
-            productOptionModel = productToAdd ? recreateHelpers.updateOptions(productList[i], productToAdd.object) : null;
+            productOptionModel = productToAdd ? sdxUtils.updateOptions(productList[i], productToAdd.object) : null;
             cart.addProductItem(productToAdd.object, productList[i].quantity, productOptionModel);
         }
 

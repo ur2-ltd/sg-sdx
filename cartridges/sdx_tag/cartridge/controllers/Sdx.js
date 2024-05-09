@@ -17,6 +17,7 @@ var URLUtils = require('dw/web/URLUtils');
 var app = require('*/cartridge/scripts/app');
 var guard = require('*/cartridge/scripts/guard');
 var sdxCart = require('*/cartridge/scripts/sdx/sdxATC');
+var sdxUtils = require('*/cartridge/scripts/sdx/utils');
 
 function permalink() {
     try {
@@ -36,6 +37,10 @@ function permalink() {
         return;
     }
 
+    // Clear cart
+    sdxUtils.clearCart();
+
+    // Add new products based on the items received on the URL params
     var renderInfo = sdxCart.addProductToCart(items, cart);
 
     if (renderInfo.error) {
@@ -61,18 +66,38 @@ function permalink() {
 
 function getCartItems() {
     try {
-        var cart = app.getModel('Cart').goc();
-        if(cart) {
-            response.setContentType('application/json');
+        var currentBasket = BasketMgr.getCurrentBasket();
+        var cartItems = [];
 
-            let json = JSON.stringify(cart.object.allProductLineItems);
-            response.writer.print(json);
+        if (currentBasket) {
+            var basketItems = currentBasket.getProductLineItems().toArray();
+            for (var itemIndex = 0; itemIndex < basketItems.length; itemIndex++) {
+                var lineItem = basketItems[itemIndex];
+                var currentProductID = lineItem.productID;
+
+                var currentLineItem = {
+                    productID: currentProductID,
+                    quantity: lineItem.quantity.value
+                };
+
+                cartItems.push(currentLineItem);
+            }
         }
+
+        let json = JSON.stringify({
+            cartItems,
+            status: 200
+        });
+
+        response.setContentType('application/json');
+        response.writer.print(json);
+
     } catch (error) {
-        app.getView({
-            message: Resource.msg(error, 'sdx_error', null)
-        }).render('sdx/error');
-        return;
+        response.setContentType('application/json');
+        response.writer.print(JSON.stringify({
+            status: 500,
+            error: error
+        }));
     }
 }
 
