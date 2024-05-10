@@ -12,6 +12,7 @@
 var Resource = require('dw/web/Resource');
 var StringUtils = require('dw/util/StringUtils');
 var URLUtils = require('dw/web/URLUtils');
+var BasketMgr = require('dw/order/BasketMgr');
 
 /* Script Modules */
 var app = require('*/cartridge/scripts/app');
@@ -38,7 +39,11 @@ function permalink() {
     }
 
     // Clear cart
-    sdxUtils.clearCart();
+    try {
+        sdxUtils.clearCart();
+    } catch (error) {
+        //error
+    }
 
     // Add new products based on the items received on the URL params
     var renderInfo = sdxCart.addProductToCart(items, cart);
