@@ -69,6 +69,49 @@ function permalink() {
     }
 }
 
+function updateMiniCart() {
+
+    try {
+        var cart = app.getModel('Cart').goc();
+        var items = request.httpParameterMap.items ? JSON.parse(StringUtils.decodeBase64(request.httpParameterMap.items)) : null;
+    } catch (error) {
+        app.getView({
+            message: Resource.msg('rebuildcart.message.error.general1', 'sdx_error', null)
+        }).render('sdx/error');
+        return;
+    }
+
+    if (!cart || !items || !items.length) {
+        app.getView({
+            message: Resource.msg('rebuildcart.message.error.general2', 'sdx_error', null)
+        }).render('sdx/error');
+        return;
+    }
+
+    // Clear cart
+    try {
+        sdxUtils.clearCart();
+    } catch (error) {
+        //error
+    }
+
+    // Add new products based on the items received on the URL params
+    var renderInfo = sdxCart.addProductToCart(items, cart);
+
+    if (renderInfo.error) {
+        app.getView({
+            message: Resource.msg('rebuildcart.message.error.general3', 'sdx_error', null)
+        }).render('sdx/error');
+        return;
+    }
+    
+    // Render mini cart
+    app.getView({
+        Basket: cart ? cart.object : null
+    }).render('checkout/cart/minicart');
+    
+}
+
 function getCartItems() {
     try {
         var currentBasket = BasketMgr.getCurrentBasket();
@@ -107,4 +150,5 @@ function getCartItems() {
 }
 
 exports.Permalink = guard.ensure(['get', 'https'], permalink);
+exports.UpdateMiniCart = guard.ensure(['get', 'https'], updateMiniCart);
 exports.CartItems = guard.ensure(['get', 'https'], getCartItems);
